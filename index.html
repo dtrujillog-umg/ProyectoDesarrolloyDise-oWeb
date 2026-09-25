@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UmgVideos | Catalogo de videos</title>
+  <meta name="description" content="Plataforma de videos educativos del centro.">
+
+  <!-- Bootstrap 5 siempre por CDN: no se descarga al repositorio. -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!--
+    Bootstrap no expone utilidades para cursor, transform, transition ni
+    max-height en vh, asi que lo minimo inevitable se declara aqui. Los colores,
+    en cambio, salen todos de clases de Bootstrap.
+  -->
+  <style>
+    .video-card { cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; }
+    .video-card:hover, .video-card:focus-visible {
+      transform: translateY(-4px);
+      box-shadow: 0 .5rem 1rem rgba(var(--bs-dark-rgb), .15) !important;
+    }
+    .video-card:focus-visible { outline: 3px solid var(--bs-primary); outline-offset: 2px; }
+
+    .card-img-top { aspect-ratio: 3 / 2; }
+
+    #reproductor { max-height: 60vh; }
+    #listaComentarios { max-height: 45vh; }
+  </style>
+</head>
+<body class="bg-body-tertiary">
+
+  <!--  NAVBAR  -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="index.html">&#127916; UmgVideos</a>
+      <div class="ms-auto d-flex align-items-center gap-2">
+        <span id="userLabel" class="text-white-50 small d-none d-sm-inline"></span>
+        <a href="login.html" id="btnLogin" class="btn btn-outline-light btn-sm">Iniciar sesion</a>
+        <button id="btnLogout" type="button" class="btn btn-outline-danger btn-sm d-none">
+          Cerrar sesion
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container my-4">
+
+    <!--  FILTROS  -->
+    <section class="card shadow-sm mb-4">
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <div class="col-md-6">
+            <label for="busqueda" class="form-label small fw-semibold">Buscar video</label>
+            <div class="input-group">
+              <span class="input-group-text">&#128269;</span>
+              <input type="search" id="busqueda" class="form-control"
+                     placeholder="Buscar por titulo..." autocomplete="off">
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <label for="filtroCategoria" class="form-label small fw-semibold">Categoria</label>
+            <select id="filtroCategoria" class="form-select">
+              <option value="todas">Todas las categorias</option>
+            </select>
+          </div>
+
+          <div class="col-md-2">
+            <button type="button" id="btnLimpiarFiltros" class="btn btn-outline-secondary w-100">
+              Limpiar
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Aviso de error del catalogo, oculto por defecto. -->
+    <div id="alertaCatalogo" class="d-none"></div>
+
+    <!-- Indicador de carga inicial. -->
+    <div id="zonaCarga" class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
+      <p class="text-muted mt-3 mb-0">Cargando catalogo de videos...</p>
+    </div>
+
+    <!--  CATALOGO  -->
+    <!-- Las cards se inyectan desde js/videos.js y se abren por delegacion. -->
+    <section id="catalogo" class="row d-none" aria-live="polite"></section>
+
+  </main>
+
+  <footer class="container text-center text-muted small py-4">
+    UmgVideos &middot; Proyecto academico &middot; HTML5 + CSS3 + Vanilla JS + Bootstrap 5
+  </footer>
+
+  <!--  MODAL: REPRODUCTOR DE VIDEO  -->
+  <div class="modal fade" id="modalVideo" tabindex="-1" aria-labelledby="tituloVideo" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <div>
+            <h5 class="modal-title" id="tituloVideo">Video</h5>
+            <small class="text-muted" id="metaVideo"></small>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+
+        <div class="modal-body">
+
+          <!-- Reproductor. El <source> se asigna desde js/app.js. -->
+          <video id="reproductor" class="w-100 rounded mb-3 bg-black" controls preload="none">
+            Tu navegador no soporta la reproduccion de video.
+          </video>
+
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <span id="badgeCategoria" class="badge text-bg-primary"></span>
+          </div>
+          <p id="descripcionVideo" class="text-muted"></p>
+
+          <hr>
+
+          <!-- Like. Se habilita/deshabilita segun la sesion. -->
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <button type="button" id="btnLike" class="btn btn-outline-danger" aria-pressed="false">
+              <span id="iconoLike" aria-hidden="true">&#10084;</span>
+              <span id="contadorLikes">0</span>
+            </button>
+            <small class="text-muted">Me gusta</small>
+          </div>
+
+          <!-- Aviso de control de acceso para visitantes. -->
+          <div id="avisoLogin"></div>
+
+          <!-- Comentario principal. -->
+          <h6 class="fw-bold mb-2">
+            Comentarios <span id="totalComentarios" class="badge text-bg-secondary">0</span>
+          </h6>
+          <div class="input-group mb-3">
+            <input type="text" id="inputComentario" class="form-control"
+                   placeholder="Escribe un comentario..." maxlength="500" autocomplete="off">
+            <button type="button" id="btnComentar" class="btn btn-primary">Enviar</button>
+          </div>
+
+          <!-- Arbol de comentarios: nivel 1 + respuestas directas. -->
+          <div id="listaComentarios" class="overflow-y-auto"></div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--  MODAL COMENTARIOS  -->
+  <div class="modal fade" id="modalResponder" tabindex="-1" aria-labelledby="tituloResponder" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="tituloResponder">
+            Responder a <span id="autorResponder" class="text-primary"></span>
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <label for="textoResponder" class="form-label">Tu respuesta</label>
+          <textarea id="textoResponder" class="form-control" rows="3" maxlength="500"
+                    placeholder="Escribe tu respuesta..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" id="btnEnviarRespuesta" class="btn btn-primary">Publicar respuesta</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--  MODAL: CONFIRMAR ELIMINAR  -->
+  <div class="modal fade" id="modalEliminar" tabindex="-1" aria-labelledby="tituloEliminar" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="tituloEliminar">Eliminar comentario</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0">
+            Estas a punto de eliminar el comentario escrito por
+            <strong id="autorEliminar"></strong>. Esta accion no se puede deshacer.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" id="btnConfirmarEliminar" class="btn btn-danger">Si, eliminar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--  NOTIFICACIONES  -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContenedor"></div>
+
+  <!-- Bootstrap 5 bundle: incluye Popper, necesario para los modales. -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Orden obligatorio: api.js define las utilidades que usan las demas. -->
+  <script src="js/api.js"></script>
+  <script src="js/usuario.js"></script>
+  <script src="js/videos.js"></script>
+  <script src="js/interacciones.js"></script>
+  <script src="js/modales.js"></script>
+  <script src="js/comentarios.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

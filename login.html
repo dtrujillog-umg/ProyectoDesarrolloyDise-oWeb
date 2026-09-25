@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Iniciar sesion | EduVideos</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!--
+    Todo el color sale de clases de Bootstrap: el fondo es bg-dark y el anillo
+    de foco es el que Bootstrap ya aplica por defecto. Solo queda el ancho maximo
+    del formulario, porque Bootstrap no tiene utilidad de max-width en px.
+  -->
+  <style>
+    .tarjeta { max-width: 440px; }
+  </style>
+</head>
+<body class="d-flex align-items-center justify-content-center p-3 min-vh-100 bg-dark">
+
+  <div class="card shadow-lg tarjeta w-100">
+    <div class="card-body p-4">
+
+      <div class="text-center mb-4">
+        <div class="display-6">&#127916;</div>
+        <h1 class="h4 mb-1">EduVideos</h1>
+        <p class="text-muted small mb-0">Videos educativos del centro</p>
+      </div>
+
+      <!-- ===================== LOGIN ===================== -->
+      <div id="formLoginBox">
+        <h2 class="h6 fw-bold mb-3">Iniciar sesion</h2>
+
+        <div id="alertaLogin" class="d-none" role="alert" aria-live="assertive"></div>
+
+        <form id="formLogin" novalidate>
+          <div class="mb-3">
+            <label for="usuario" class="form-label">Carne o correo</label>
+            <input type="text" id="usuario" class="form-control" autocomplete="username"
+                   placeholder="1890-20-11489 o nombre@dominio.com" required>
+            <div class="form-text">Puedes ingresar con tu carne o tu correo.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="password" class="form-label">PIN</label>
+            <div class="input-group">
+              <input type="password" id="password" class="form-control" autocomplete="current-password"
+                     inputmode="numeric" placeholder="Solo numeros" required>
+              <button class="btn btn-outline-secondary" type="button" id="btnVerPin"
+                      aria-label="Mostrar u ocultar el PIN">Ver</button>
+            </div>
+            <div class="form-text">Tu PIN es estrictamente numerico.</div>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100" id="btnEntrar">Entrar</button>
+        </form>
+
+        <hr class="my-4">
+
+        <p class="text-center small mb-0">
+          No tienes cuenta? <a href="#" id="irRegistro" class="fw-semibold">Registrate</a>
+        </p>
+      </div>
+
+      <!-- ===================== REGISTRO ===================== -->
+      <div id="formRegistroBox" class="d-none">
+        <h2 class="h6 fw-bold mb-3">Crear cuenta</h2>
+
+        <div id="alertaRegistro" class="d-none" role="alert" aria-live="assertive"></div>
+
+        <form id="formRegistro" novalidate>
+          <div class="mb-2">
+            <label for="regCarne" class="form-label">Carne</label>
+            <input type="text" id="regCarne" class="form-control" placeholder="1890-20-11489"
+                   maxlength="13" required>
+            <div class="form-text">Formato 9999-99-9999 o 9999-99-99999.</div>
+          </div>
+
+          <div class="mb-2">
+            <label for="regNombre" class="form-label">Nombre completo</label>
+            <input type="text" id="regNombre" class="form-control" placeholder="Nombre y apellidos"
+                   autocomplete="name" required>
+          </div>
+
+          <div class="mb-2">
+            <label for="regCorreo" class="form-label">Correo</label>
+            <input type="email" id="regCorreo" class="form-control" placeholder="nombre@dominio.com"
+                   autocomplete="email" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="regPassword" class="form-label">PIN</label>
+            <input type="password" id="regPassword" class="form-control" placeholder="Solo numeros"
+                   inputmode="numeric" autocomplete="new-password" required>
+            <div class="form-text">Solo numeros. El carne y el correo no pueden repetirse.</div>
+          </div>
+
+          <button type="submit" class="btn btn-success w-100" id="btnRegistrar">Registrarme</button>
+        </form>
+
+        <p class="text-center small mt-3 mb-0">
+          Ya tienes cuenta? <a href="#" id="irLogin" class="fw-semibold">Inicia sesion</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!--
+    Solo se cargan api.js, usuario.js y login.js: el catalogo no hace falta aqui.
+    Toda la logica vive en la clase Login, sin scripts inline.
+  -->
+  <script src="js/api.js"></script>
+  <script src="js/usuario.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>
