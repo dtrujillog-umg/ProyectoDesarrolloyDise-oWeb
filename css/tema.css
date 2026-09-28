@@ -1,0 +1,441 @@
+/* =============================================================================
+   tema.css - tema neobrutalista sobre Bootstrap 5.3.3
+   -----------------------------------------------------------------------------
+   Se carga DESPUES de bootstrap.min.css y solo redefine variables que Bootstrap
+   ya declara, asi que la paleta sigue viniendo de Bootstrap y se cambia desde
+   este unico lugar.
+
+   La firma del estilo son tres decisiones:
+     1. Esquinas rectas (--bs-border-radius en 0).
+     2. Bordes gruesos de tinta: el borde es el color del texto.
+     3. Sombra dura, sin difuminado, que se encoge al presionar el boton.
+
+   Bootstrap no ofrece utilidades para sombra dura, transform, cursor ni
+   max-height en vh, asi que eso si se declara aqui a mano.
+   ============================================================================= */
+
+:root {
+  /* ---- Superficies ---- */
+  --bs-body-bg: #f3efe4;
+  --bs-body-bg-rgb: 243, 239, 228;
+  --bs-body-color: #141414;
+  --bs-emphasis-color: #141414;
+  --bs-secondary-color: #57514a;
+  --bs-tertiary-color: #57514a;
+  --bs-secondary-bg: #e6dfcd;
+  --bs-tertiary-bg: #ece5d5;
+  --bs-light: #ffffff;
+  --bs-dark: #141414;
+  --bs-dark-rgb: 20, 20, 20;
+
+  /* ---- Tinta: el color del texto tambien es el color del borde ---- */
+  --bs-border-color: #141414;
+  --bs-border-width: 2px;
+  --bs-link-color: #141414;
+  --bs-link-hover-color: #141414;
+
+  /* ---- Acentos ---- */
+  --bs-primary: #ffc400;
+  --bs-primary-rgb: 255, 196, 0;
+  --bs-primary-contrast-color: #141414;
+  --bs-secondary: #141414;
+  --bs-secondary-rgb: 20, 20, 20;
+  --bs-secondary-contrast-color: #ffc400;
+  --bs-danger: #ff4b33;
+  --bs-danger-rgb: 255, 75, 51;
+  --bs-danger-contrast-color: #141414;
+  --bs-warning: #ffd400;
+  --bs-warning-rgb: 255, 212, 0;
+  --bs-warning-contrast-color: #141414;
+  --bs-success: #2fcf87;
+  --bs-success-rgb: 47, 207, 135;
+  --bs-success-contrast-color: #141414;
+  --bs-info: #3cc9f5;
+  --bs-info-rgb: 60, 201, 245;
+  --bs-info-contrast-color: #141414;
+
+  /* ---- Esquinas rectas ---- */
+  --bs-border-radius: 0;
+  --bs-border-radius-sm: 0;
+  --bs-border-radius-lg: 0;
+  --bs-border-radius-xl: 0;
+  --bs-border-radius-2xl: 0;
+  --bs-border-radius-pill: 0;
+
+  /* ---- Medidas propias del tema (Bootstrap no las ofrece) ---- */
+  --uv-sombra: 4px 4px 0 var(--bs-body-color);
+  --uv-sombra-lg: 8px 8px 0 var(--bs-body-color);
+  --uv-rejilla: rgba(20, 20, 20, .055);
+}
+
+/* ------------------------------------------------------------------ fondo --
+   Rejilla de dos lineas gradientes: da textura sin una sola imagen externa. */
+body {
+  background-color: var(--bs-body-bg);
+  background-image:
+    linear-gradient(var(--uv-rejilla) 1px, transparent 1px),
+    linear-gradient(90deg, var(--uv-rejilla) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* El amarillo sirve de relleno, no de texto: sobre crema no se lee. */
+.text-primary {
+  color: var(--bs-body-color) !important;
+}
+
+/* Bootstrap 5.3 fija a blanco literal el color de texto de .text-bg-*, asi que
+   con esta paleta el blanco caeria sobre un acento saturado y no se leeria.
+   Se devuelve el color de contraste que declara cada variante. */
+.text-bg-primary {
+  color: var(--bs-primary-contrast-color) !important;
+}
+
+.text-bg-success {
+  color: var(--bs-success-contrast-color) !important;
+}
+
+.text-bg-info {
+  color: var(--bs-info-contrast-color) !important;
+}
+
+.text-bg-warning {
+  color: var(--bs-warning-contrast-color) !important;
+}
+
+.text-bg-danger {
+  color: var(--bs-danger-contrast-color) !important;
+}
+
+.text-bg-secondary {
+  color: var(--bs-secondary-contrast-color) !important;
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+  font-weight: 800;
+  letter-spacing: -.01em;
+}
+
+hr {
+  border-color: var(--bs-body-color);
+  border-width: 2px;
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------------- botones --
+   El estado hover y el pressed NO cambian de color: la respuesta es la sombra,
+   que se encoge. Por eso los estados se enganchan a las variables de color de
+   la variante y basta con fijar el color una sola vez. */
+.btn {
+  --bs-btn-border-width: 2px;
+  --bs-btn-border-radius: 0;
+  --bs-btn-padding-x: 1rem;
+  --bs-btn-padding-y: .5rem;
+  --bs-btn-font-weight: 800;
+  --bs-btn-disabled-opacity: 1;
+  --bs-btn-focus-width: 3px;
+  --bs-btn-focus-box-shadow: 0 0 0 3px var(--bs-primary);
+  --bs-btn-active-shadow: none;
+
+  --bs-btn-hover-bg: var(--bs-btn-bg);
+  --bs-btn-hover-color: var(--bs-btn-color);
+  --bs-btn-hover-border-color: var(--bs-btn-border-color);
+  --bs-btn-active-bg: var(--bs-btn-bg);
+  --bs-btn-active-color: var(--bs-btn-color);
+  --bs-btn-active-border-color: var(--bs-btn-border-color);
+  --bs-btn-disabled-bg: var(--bs-btn-bg);
+  --bs-btn-disabled-color: var(--bs-btn-color);
+  --bs-btn-disabled-border-color: var(--bs-btn-border-color);
+
+  border-radius: 0;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  box-shadow: var(--uv-sombra);
+  transition: transform .1s ease, box-shadow .1s ease;
+}
+
+.btn:hover:not(:disabled):not(.disabled) {
+  color: var(--bs-btn-hover-color);
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--bs-body-color);
+}
+
+.btn:active:not(:disabled):not(.disabled) {
+  color: var(--bs-btn-active-color);
+  transform: translate(4px, 4px);
+  box-shadow: none;
+}
+
+.btn:disabled,
+.btn.disabled {
+  border-style: dashed;
+  box-shadow: none;
+  opacity: .55;
+}
+
+.btn-sm {
+  --bs-btn-padding-x: .75rem;
+  --bs-btn-padding-y: .3rem;
+  font-size: .8rem;
+}
+
+.btn-lg {
+  --bs-btn-padding-x: 1.5rem;
+  --bs-btn-padding-y: .8rem;
+  font-size: 1.05rem;
+}
+
+/* Solo se fija el color base de cada variante. */
+.btn-primary {
+  --bs-btn-bg: var(--bs-primary);
+  --bs-btn-color: var(--bs-primary-contrast-color);
+  --bs-btn-border-color: var(--bs-body-color);
+}
+
+.btn-success {
+  --bs-btn-bg: var(--bs-success);
+  --bs-btn-color: var(--bs-success-contrast-color);
+  --bs-btn-border-color: var(--bs-body-color);
+}
+
+.btn-danger {
+  --bs-btn-bg: var(--bs-danger);
+  --bs-btn-color: var(--bs-danger-contrast-color);
+  --bs-btn-border-color: var(--bs-body-color);
+}
+
+/* Relleno oscuro con texto amarillo: el contraste de la barra. */
+.btn-dark,
+.btn-secondary {
+  --bs-btn-bg: var(--bs-dark);
+  --bs-btn-color: var(--bs-primary);
+  --bs-btn-border-color: var(--bs-dark);
+}
+
+/* Contornos: en reposo solo tinta, al hover se rellenan. */
+.btn-outline-dark,
+.btn-outline-light,
+.btn-outline-secondary {
+  --bs-btn-bg: transparent;
+  --bs-btn-color: var(--bs-body-color);
+  --bs-btn-border-color: var(--bs-body-color);
+  --bs-btn-hover-bg: var(--bs-primary);
+}
+
+.btn-outline-danger {
+  --bs-btn-bg: transparent;
+  --bs-btn-color: var(--bs-danger);
+  --bs-btn-border-color: var(--bs-body-color);
+  --bs-btn-hover-bg: var(--bs-danger);
+  --bs-btn-hover-color: var(--bs-danger-contrast-color);
+}
+
+.btn-link {
+  --bs-btn-color: var(--bs-body-color);
+  --bs-btn-hover-color: var(--bs-body-color);
+  --bs-btn-active-color: var(--bs-body-color);
+  text-decoration: underline;
+  box-shadow: none;
+}
+
+/* ----------------------------------------------------------------- navbar --
+   Barra amarilla con borde inferior de tinta y su linea dura de sombra. */
+.barra {
+  --bs-navbar-color: var(--bs-body-color);
+  --bs-navbar-brand-color: var(--bs-body-color);
+  --bs-navbar-brand-hover-color: var(--bs-body-color);
+
+  background-color: var(--bs-primary);
+  border-bottom: 3px solid var(--bs-body-color);
+  box-shadow: 0 4px 0 var(--bs-body-color);
+}
+
+.barra .navbar-brand {
+  font-weight: 900;
+  letter-spacing: -.02em;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0 var(--bs-light);
+}
+
+/* ----------------------------------------------------------------- cards -- */
+.card {
+  --bs-card-border-width: 2px;
+  --bs-card-border-color: var(--bs-body-color);
+  --bs-card-bg: var(--bs-light);
+  box-shadow: var(--uv-sombra);
+}
+
+.card-img-top {
+  aspect-ratio: 3 / 2;
+  border-bottom: 2px solid var(--bs-body-color);
+}
+
+.card-title {
+  font-weight: 800;
+}
+
+/* El hover "levanta" en diagonal, coherente con la sombra dura. */
+.video-card {
+  cursor: pointer;
+  box-shadow: var(--uv-sombra);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+
+.video-card:hover,
+.video-card:focus-visible {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--uv-sombra-lg);
+}
+
+.video-card:focus-visible {
+  outline: 3px solid var(--bs-body-color);
+  outline-offset: 3px;
+}
+
+.badge {
+  border: 2px solid var(--bs-body-color);
+  font-weight: 700;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------- formularios -- */
+.form-label {
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.form-control,
+.form-select,
+.input-group-text {
+  border-width: 2px;
+  border-color: var(--bs-body-color);
+  border-radius: 0;
+  background-color: var(--bs-light);
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--bs-body-color);
+  background-color: var(--bs-light);
+  box-shadow: 0 0 0 3px var(--bs-primary);
+}
+
+.form-control::placeholder {
+  color: #8a8375;
+}
+
+.form-text {
+  color: #6b6558;
+}
+
+/* El prefijo del buscador va en amarillo. */
+.input-group-text {
+  background-color: var(--bs-primary);
+  font-size: 1.1rem;
+}
+
+/* Se separan las piezas del grupo en vez de fundirlas: con radio 0 el borde
+   compartido de Bootstrap solo deja una linea de 1px. */
+.input-group {
+  gap: .5rem;
+}
+
+.input-group > :not(:first-child) {
+  margin-left: 0;
+}
+
+/* ----------------------------------------------------------------- avisos -- */
+.alert {
+  border-width: 2px;
+  border-color: var(--bs-body-color);
+  font-weight: 500;
+}
+
+.alert-link {
+  color: var(--bs-body-color);
+  font-weight: 800;
+  text-decoration: underline;
+}
+
+/* ----------------------------------------------------------------- modales -- */
+.modal-content {
+  border: 3px solid var(--bs-body-color);
+  border-radius: 0;
+  background-color: var(--bs-light);
+  box-shadow: var(--uv-sombra-lg);
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--bs-body-color);
+}
+
+.modal-title {
+  font-weight: 800;
+  letter-spacing: -.01em;
+  text-transform: uppercase;
+}
+
+.modal-backdrop {
+  background-color: var(--bs-body-color);
+  opacity: .55;
+}
+
+/* ----------------------------------------------------------------- toasts --
+   El color del texto lo pone el bloque de .text-bg-* de arriba. */
+.toast {
+  border: 2px solid var(--bs-body-color);
+  border-radius: 0;
+  background-color: var(--bs-light);
+  box-shadow: var(--uv-sombra);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------- medidas propias --
+   Bootstrap 5.3 no tiene utilidad de max-height en vh ni de max-width en px. */
+#reproductor {
+  max-height: 60vh;
+  border: 3px solid var(--bs-body-color);
+}
+
+#listaComentarios {
+  max-height: 45vh;
+}
+
+.tarjeta {
+  max-width: 440px;
+}
+
+/* Cuadro de la marca en login.html. */
+.marca {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 84px;
+  height: 84px;
+  background-color: var(--bs-primary);
+  border: 3px solid var(--bs-body-color);
+  box-shadow: var(--uv-sombra);
+}
+
+.spinner-border {
+  border-width: .3em;
+}
+
+/* Sin transicion, el desplazamiento del boton puede molestar. */
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .video-card {
+    transition: none;
+  }
+
+  .btn:hover:not(:disabled):not(.disabled),
+  .video-card:hover,
+  .video-card:focus-visible {
+    transform: none;
+  }
+}

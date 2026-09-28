@@ -1,0 +1,449 @@
+================================================================================
+ DOCUMENTACION DEL PROYECTO - UmgVideos
+ Catalogo de videos educativos
+================================================================================
+  Archivo    : DOCUMENTACION.txt
+  Generado   : 2026
+  Alcance    : index.html, login.html, css/tema.css y los 8 modulos de js/
+  Lenguaje   : JavaScript vanilla (ES2020+) + Bootstrap 5.3.3 por CDN
+  Builds     : NINGUNO. No hay npm, ni bundler, ni paso de compilacion.
+
+
+--------------------------------------------------------------------------------
+ 1. COMO EJECUTAR
+--------------------------------------------------------------------------------
+ Los .html y .js deben servirse por HTTP. No sirve abrir el archivo con
+ file:// porque la API hace fetch() con CORS y el navegador lo bloquea.
+
+   Desde la carpeta del proyecto:
+       npx serve .
+       o bien:
+       python -m http.server 8080
+
+   Luego entrar a:
+       http://localhost:8080/login.html    (entrar primero)
+       http://localhost:8080/index.html    (catalogo)
+
+
+--------------------------------------------------------------------------------
+ 2. ESTRUCTURA DE ARCHIVOS
+--------------------------------------------------------------------------------
+   index.html        Catalogo: navbar, buscador, filtros, grilla, 3 modales,
+                     panel de comentarios y contenedor de toasts. (207 lineas)
+   login.html        Inicio de sesion y registro. Card centrada. (111 lineas)
+
+   css/tema.css      Tema neobrutalista. Redefine variables de Bootstrap.
+                     Va en AMBAS paginas. (441 lineas)
+
+   js/api.js         Capa HTTP. fetch, timeout, errores y escapado. (144 lineas)
+   js/usuario.js     Sesion, validacion de formularios, login y registro. (161)
+   js/videos.js      Catalogo: listado, filtros, busqueda, likes, render. (133)
+   js/interacciones.js  Like, comentar, responder, eliminar. (80)
+   js/modales.js     Instancias de Bootstrap Modal y su coordinacion. (74)
+   js/comentarios.js Arbol de comentarios y respuestas. (231)
+   js/app.js         Orquestador de index.html. (329)
+   js/login.js       Controlador de login.html. (182)
+
+   Orden de carga de los CSS (OBLIGATORIO):
+     1. bootstrap.min.css por CDN
+     2. css/tema.css
+   Si se invierte, el tema pierde: sus reglas tienen la misma especificidad
+   que las de Bootstrap y solo gana por ir despues en la cascada.
+
+   Orden de carga de los JS (OBLIGATORIO, es por dependencia entre clases):
+     index.html -> api.js, usuario.js, videos.js, interacciones.js,
+                   modales.js, comentarios.js, app.js
+     login.html -> api.js, usuario.js, login.js
+
+   Al agregar un archivo nuevo, agregarlo DESPUES de api.js y antes de app.js.
+
+   Los dos HTML ya NO llevan <style> inline: todo el CSS vive en css/tema.css.
+
+
+--------------------------------------------------------------------------------
+  3. DEPENDENCIAS EXTERNAS
+--------------------------------------------------------------------------------
+   Solo hay UNA dependencia externa: Bootstrap 5.3.3, desde jsDelivr.
+
+    CSS  : https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css
+    JS   : https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js
+
+   El bundle ya incluye Popper, asi que NO se agrega el popper aparte.
+
+   css/tema.css NO es una dependencia externa: es del proyecto y esta versionado.
+
+   Lo que NO se usa a proposito (y no debe agregarse):
+     - jQuery            (Bootstrap 5 no lo necesita)
+     - Popper por CDN    (ya va dentro del bundle)
+     - Font Awesome      (los iconos son emojis, ver seccion 7)
+     - Bootstrap Icons   (en la 5.3 es un paquete aparte; se decidio no agregar)
+     - SweetAlert, Toastify, Axios, Vue, React
+       Motivo: es una practica academica y se busca codigo legible y sin capas.
+
+   Para trabajar offline, descargar el CSS una vez y cambiar el href a la ruta local.
+
+
+--------------------------------------------------------------------------------
+ 4. VARIABLES GLOBALES
+--------------------------------------------------------------------------------
+ El proyecto expone UN solo global: `window.app`.
+
+   app.js (ultimas lineas):
+       window.app = app;
+       app.init();
+
+   Se expone para poder depurar desde la consola del navegador:
+       app.el          -> mapa de elementos cacheados
+       app.videoActual -> video abierto en el modal
+       app.usuario     -> estado de sesion
+       app.videos.lista-> catalogo completo en memoria
+
+   Los otros 7 modulos NO asignan nada a window. Sus clases se registran
+   sola cuando el <script> se ejecuta, porque cada archivo es un class
+   declaration de nivel superior. Esto evita contaminar el global.
+
+   Variables de nivel de modulo (visibles para todos los archivos, por el
+   orden de carga):
+       API_URL, API_TIMEOUT_MS   -> api.js
+       REGEX_CARNE, REGEX_CORREO, REGEX_PIN, CLAVE_SESION -> usuario.js
+
+
+--------------------------------------------------------------------------------
+ 5. CONSTANTES
+--------------------------------------------------------------------------------
+   api.js
+     API_URL          = "https://back-semprivado-umg-h6fkf2bng2avgrgw.westus3-01.azurewebsites.net"
+     API_TIMEOUT_MS   = 15000        (15 s antes de abortar con AbortController)
+
+   usuario.js
+     REGEX_CARNE      = /^\d{4}-\d{2}-\d{3,5}$/     1890-20-11489
+     REGEX_CORREO     = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+     REGEX_PIN        = /^\d+$/                     solo digitos
+     CLAVE_SESION     = "usuario"                   clave en localStorage
+
+
+--------------------------------------------------------------------------------
+ 6. CLASES, CONSTRUCTORES Y PROPIEDADES DE INSTANCIA
+--------------------------------------------------------------------------------
+   class ApiError extends Error          -> status, cuerpo
+   class Api            -> clase estatica pura, no se instancia
+   class Usuario        -> this.sesion
+   class Videos         -> this.lista, this.filtrados,
+                            this.categoriaActual, this.textoActual
+   class Interacciones  -> this.usuario          (recibe Usuario)
+   class Modales        -> this.app, this.video, this.responder, this.eliminar
+   class Comentarios    -> this.app,
+                            this.objetivoRespuesta, this.objetivoBorrado
+   class App            -> this.el, this.usuario, this.videos,
+                            this.interacciones, this.modales, this.comentarios,
+                            this.videoActual
+   class Login          -> this.elementos
+
+   Constructores con dependencia (el orden importa):
+       new Interacciones(usuario)
+       new Modales(app)
+       new Comentarios(app)
+
+
+--------------------------------------------------------------------------------
+ 7. EMOJIS USADOS  (y por que se usan asi)
+--------------------------------------------------------------------------------
+   Se usan CUATRO emojis distintos, y solo como iconografia decorativa. No son
+   imagenes, no hay archivos .png/.svg, y no hay libreria de iconos.
+
+    ENTIDAD     PUNTO DE CODIGO  SIGNIFICADO     DONDE                 COMO SE USA
+    ---------   ---------------  --------------  --------------------  ---------------------------
+    &#127916;   U+1F3AC          mesa de mezcla  index.html L23        navbar-brand: icono del
+                              (clapperboard)   login.html L17         sitio. En login va dentro
+                                                                   del <div class="marca">, un
+                                                                   cuadro amarillo de 84px con
+                                                                   borde de tinta.
+                                                     js/videos.js L96     Imagen de reemplazo cuando
+                                                                   el video no trae poster: entra
+                                                                   dentro del <img> con class="fs-1".
+
+    &#128269;   U+1F9E9          pieza de        index.html L43        Prefijo del buscador, dentro
+                              puzzla / ajustes  js/videos.js L83      de <span class="input-group-text">
+                                                                   de Bootstrap, a la izquierda del
+                                                                   <input>. Senala "configurar" la
+                                                                   busqueda. En videos.js es el icono
+                                                                   del estado vacio del catalogo
+                                                                   ("no hay videos que mostrar").
+
+    &#9201;    U+23F1           cronometro      js/videos.js L114      Muestra la duracion del video
+                                                                   en la card, junto al contador de
+                                                                   likes, dentro de <small>.
+
+    &#10084;   U+2764           corazon rojo    index.html L116       Estado inicial del boton
+                              (heavy heart)    js/videos.js L115      "Me gusta". En videos.js
+                                                                   acompana al numero de likes dentro
+                                                                   de la card, con class="text-danger".
+                                                                   index.html lo marca
+                                                                   aria-hidden="true" porque el texto
+                                                                   cercano ya dice "Me gusta" y hay un
+                                                                   contador: un lector de pantalla no
+                                                                   debe leer "corazon" dos veces.
+
+   --- El corazon dinamico, que SI alterna (unico caso con dos estados) ---
+
+   En app.js, dentro de pintarLike(), el icono se cambia en tiempo de ejecucion:
+
+       iconoLike.textContent = activo ? "\u2764" : "\u2661";
+                                 _corazon_    corazon
+
+       U+2764  corazon lleno   -> el usuario YA dio like
+                                  boton: btn-danger + aria-pressed="true"
+       U+2661  corazon vacio   -> no dio like
+                                  boton: btn-outline-danger + aria-pressed="false"
+
+   El estado sale de videos.js dioLike(), que busca la carne del usuario
+   dentro del array usuariosLikes que devuelve la API. No es un contador
+   local: si otra sesion da like, al recargar el boton ya sale lleno.
+
+   test-like.js verifica la alternancia en 4 clics seguidos:
+       clic 1 -> corazon lleno, likes 8
+       clic 2 -> corazon vacio, likes 7
+       clic 3 -> corazon lleno, likes 8
+       clic 4 -> corazon vacio, likes 7
+
+   --- Aviso importante: hay dos formas de escribir los emojis en el proyecto ---
+
+   index.html, login.html y videos.js  -> ENTIDAD HTML (&#NNNN;)  [ASCII puro]
+   app.js (pintarLike)                 -> CARACTER LITERAL        [UTF-8 real]
+
+   La entidad es la forma correcta y la preferida: sobrevive a que el archivo
+   se guarde con otra codificacion, no se rompe al copiar y pegar y es
+   legible en un .txt. El literal de app.js es una inconsistencia: si ese
+   archivo se guarda como ANSI o Latin-1, los dos corazones se vuelven
+   caracteres rotos y el boton deja de alternar. Si se quiere dejar todo
+   uniforme, en pintarLike() se pueden cambiar por entidades ->
+
+       iconoLike.textContent = activo ? "&#10084;" : "&#9790;";
+                                        entidad     entidad
+
+   (el navegador las interpreta aunque esten dentro de un .js, porque el valor
+   se inyecta en el DOM, no se escribe como HTML)
+
+   --- Otro caracter, que no es emoji ---
+
+   U+2014 (raya, —) aparece en los comentarios de videos.js y comentarios.js
+   para separar "-- Autor --". Es puntuacion, no icono.
+
+   --- Por que no se uso <img> ni una fuente de iconos ---
+     - aria-hidden es mas simple que una etiqueta y no genera peticiones extra.
+     - Bootstrap no trae iconos: en la version 5.3 las Bootstrap Icons son un
+       paquete aparte, que se decidio no agregar.
+
+
+--------------------------------------------------------------------------------
+ 8. API  (backend real, no se modifica)
+--------------------------------------------------------------------------------
+   GET    /api/videos                                       lista del catalogo
+   GET    /api/videos/{id}                                  detalle de un video
+   GET    /api/videos/categorias                             categorias del filtro
+   POST   /api/estudiantes/registrar                         crear cuenta
+   POST   /api/login                                         iniciar sesion
+   POST   /api/interaccionvideo/{videoId}/like              like / unlike
+   POST   /api/interaccionvideo/{videoId}/comentario         comentar
+   POST   /api/interaccionvideo/comentario/{id}/responder    responder
+   DELETE /api/interaccionvideo/comentario/{id}?carne=...    eliminar
+
+ El DELETE lleva el carne en el query string porque el DELETE no admite body
+ en la practica de esta API.
+
+ No hay token de autenticacion: la API es de practica y no lo pide.
+
+
+--------------------------------------------------------------------------------
+ 9. SEGURIDAD APLICADA EN EL FRONT
+--------------------------------------------------------------------------------
+   - Todo dato que viene de la API pasa por escaparHtml() (api.js) antes de
+     inyectarse en el DOM. Nunca se usa innerHTML con datos sin escapar.
+   - Las URLs de poster y urlVideo pasan por urlSegura(), que descarta
+     cualquier esquema que no sea http/https. Bloquea javascript: y data:.
+   - encodeURIComponent() en todo id que se mete en una ruta.
+   - Los botones de eliminar/responder se deshabilitan (disabled) si el
+     usuario no esta logueado o no es el autor.
+   - Verificado con test: <img src=x onerror=alert(1)> queda como texto
+     escapado, y un poster con javascript:alert(1) se descarta.
+
+ Limitacion conocida y aceptada: escaparHtml protege contra inyeccion de
+ HTML, pero NO contra XSS DOM-based via javascript: en un atributo href,
+ porque aqui no se generan href con datos del usuario. Y el localStorage de
+ sesion es modificable desde la consola. Para produccion haria falta
+ token + sanitizacion en el servidor. Es una practica academica.
+
+
+--------------------------------------------------------------------------------
+ 10. CONVENCIONES DE CODIGO
+--------------------------------------------------------------------------------
+   - Spanish para nombres de variables, metodos y comentarios.
+   - English solo para el DOM (id, class, dataset) y palabras reservadas.
+   - Una clase por archivo, el archivo se llama igual a la clase en minuscula.
+   - Comments: solo donde el PORQUE no es obvious. Nada de comentarios que
+     repitan el codigo. Se redujeron de 1461 a ~1330 lineas en total.
+   - Spanish sin tildes ni enes en el codigo (en <title>, ids y clases) para
+     evitar problemas de codificacion. El texto visible al usuario SI lleva
+     tildes donde corresponde.
+   - Las clases que se generan con template literals usan $ y ${}.
+   - Indentacion de 2 espacios. HTML: 2 hasta <body>, 4 dentro.
+   - d-none es la unica forma de ocultar. NO hay ni un style= inline en todo
+     el proyecto: si hace falta una medida, es una regla de css/tema.css.
+   - En el HTML y el JS no se escribe ningun color. El color se decide en
+     css/tema.css, y solo redefiniendo variables que Bootstrap ya declara.
+   - Ninguna utilidad shadow-* en el marcado: la sombra dura la pone el tema
+     (ver la trampa 3 de la seccion 11).
+
+
+--------------------------------------------------------------------------------
+ 11. EL TEMA: NEOBRUTALISMO SOBRE BOOTSTRAP
+--------------------------------------------------------------------------------
+  ESTA SECCION REEMPLAZA A LA ANTERIOR, QUE DECIA QUE NO HAY COLORES PROPIOS.
+  Ahora css/tema.css redefine las variables de Bootstrap, y eso cambia la regla.
+
+  La idea: NO se escriben colores en el marcado. Se reescriben las variables
+  que Bootstrap YA declara, todas dentro de :root en css/tema.css. La paleta
+  sigue viniendo de Bootstrap, pero se cambia desde un solo lugar. En el HTML
+  y en el JS no hay ni un solo hexadecimal.
+
+    Loader de carga   -> 1. bootstrap.min.css  2. css/tema.css
+    Fondo del cuerpo  -> bg-body    (rejilla de gradientes, sin imagenes)
+    Barra superior    -> barra      (clase propia: amarilla, borde de tinta)
+    Reproductor       -> bg-black
+    Altura minima     -> min-vh-100
+    Scroll            -> overflow-y-auto
+    Imagen del poster -> object-fit-cover
+    Borde de respuestas -> border-start border-3
+    Alerta de error   -> alert alert-danger
+    Spinner           -> spinner-border
+
+  Las tres decisiones que definen el estilo:
+
+    1. Esquinas rectas:  --bs-border-radius y sus variantes (-sm, -lg, -xl,
+       -2xl, -pill) todas en 0. Afecta cards, modales, badges, formularios,
+       toasts y alertas de una sola vez.
+    2. Bordes de tinta:   --bs-border-color y --bs-body-color valen lo mismo
+       (#141414) y --bs-border-width es 2px. El borde ES el color del texto.
+    3. Sombra dura:       --uv-sombra = 4px 4px 0 sin difuminado. En hover
+       el boton se desplaza 2px y la sombra se encoge a 2px; al presionar
+       se desplaza 4px y la sombra desaparece. El estado se comunica por
+       movimiento, no por cambio de color.
+
+  Paleta (las 6 unicas):
+
+    crema  #f3efe4   fondo del cuerpo
+    tinta  #141414   texto, bordes y sombras
+    amarillo #ffc400  --bs-primary  (relleno)
+    verde  #2fcf87   --bs-success
+    rojo   #ff4b33   --bs-danger
+    cyan   #3cc9f5   --bs-info
+
+  ------------------------------------------------------------------------
+  LAS 5 TRAMPAS DE BOOTSTRAP 5.3 QUE EL TEMA TIENE QUE ESQUIVAR
+  ------------------------------------------------------------------------
+  Ninguna se ven leyendo el CSS: solo se detectan mirando los estilos
+  calculados en el navegador (prueba tema-visual.js, seccion 12).
+
+  1) .bg-body usa --bs-body-bg-rgb, NO --bs-body-bg.
+     Redefinir solo --bs-body-bg deja el cuerpo en blanco y el tema parece
+     no funcionar. Hay que redefinir LAS DOS variables.
+
+  2) .text-bg-* fija el color del texto a blanco LITERAL (no usa
+     --bs-*-contrast-color). Sobre el amarillo eso es blanco sobre amarillo:
+     ilegible. El tema devuelve a cada variante su --bs-*-contrast-color.
+     Afecta a badges, al contador de comentarios y a todos los toasts.
+
+  3) Las utilidades shadow-* llevan !important. Ganan a .card y a .btn, y
+     devuelven la sombra difuminada original. Por eso NO hay shadow-sm ni
+     shadow-lg en el marcado: la sombra la pone el tema.
+
+  4) Los botones de Bootstrap tienen estados propios: .btn:hover fija
+     background-color con --bs-btn-hover-bg, que por defecto es un tono MAS
+     OSCURO. Aqui el hover no cambia de color, la sombra se encoge. Se
+     resuelve enganchando los estados a las variables de la variante:
+        --bs-btn-hover-bg: var(--bs-btn-bg)
+     Como una variable se resuelve en el elemento que la usa, el hover
+     hereda el color base y basta con fijar el color UNA vez por variante.
+
+  5) .fw-bold lleva !important, asi que gana contra el font-weight del tema.
+     Por eso el navbar-brand NO lleva fw-bold en el HTML: el peso 900 lo
+     pone .barra .navbar-brand. Si se vuelve a poner fw-bold, la marca
+     baja a 700 y no se nota el cambio.
+
+  ------------------------------------------------------------------------
+  REGLAS PROPIAS QUE BOOTSTRAP NO PUEDE DAR
+  ------------------------------------------------------------------------
+  Se verifico una por una contra el bootstrap.min.css real:
+
+    body                { background-image: dos linear-gradient }
+      Rejilla de textura. Bootstrap no tiene utilidad de gradiente repetido.
+
+    .btn / .video-card  { transition: transform, box-shadow }
+      Bootstrap no tiene utilidad de cursor, transform ni transition.
+
+    .video-card         { cursor: pointer }
+    .video-card:hover   { transform: translate(-2px,-2px) }
+      No existe utilidad de transform. En diagonal, no en vertical, para que
+      elHover vaya en el mismo sentido que la sombra.
+
+    .video-card:focus-visible { outline: 3px solid }
+      Accesibilidad: el navegador ya pone un contorno, pero aqui se engorda.
+
+    .card-img-top       { aspect-ratio: 3 / 2; border-bottom: 2px }
+      Bootstrap solo tiene ratio-4x3 y ratio-16x9. El 3:2 es propio del disenio.
+
+    #reproductor        { max-height: 60vh; border: 3px }
+    #listaComentarios  { max-height: 45vh; }
+      Bootstrap solo tiene vh-100 y min-vh-100, no max-vh.
+
+    .tarjeta            { max-width: 440px; }     (solo en login.html)
+      Bootstrap no tiene utilidad de max-width en px.
+
+    .marca              { 84x84, fondo primario, borde 3px }  (login.html)
+    --uv-sombra / --uv-sombra-lg / --uv-rejilla
+      Medidas propias del tema. Vienen de --bs-body-color, asi que si se
+      cambia la tinta se mueve la sombra sola.
+
+  Un detalle de orden importante: .border-3 aparece DESPUES de .border-start en
+  la hoja de Bootstrap, asi que su !important fija el grosor en 3px y el color
+  se mantiene en --bs-border-color, que con el tema es la tinta y no el gris
+  #dee2e6 de Bootstrap. border-start border-3 sigue siendo el borde correcto.
+
+  El tema cierra con un bloque @media (prefers-reduced-motion: reduce) que
+  anula las transiciones: el desplazamiento del boton puede molestar a quien
+  pidio menos movimiento en el sistema.
+
+
+--------------------------------------------------------------------------------
+ 12. PRUEBAS  (en %TEMP%\opencode, fuera del proyecto)
+--------------------------------------------------------------------------------
+   humo.js        orden de carga, grafo de App, IDs cacheados
+   test-like.js   toggle like/dislike en 4 clics, boton rehabilitado
+   test-flujos.js sesion guardada, publicar comentario, navbar
+   test-xss.js    escapado de HTML y filtro de URLs peligrosas
+   tema-check.js  balance del CSS, orden de carga, cobertura de clases
+   tema-visual.js estilos CALCULADOS en Chrome: gana el tema o gana Bootstrap
+
+   Ejecutar:
+       node humo.js
+       node test-like.js
+       node test-flujos.js
+       node test-xss.js
+       node tema-check.js
+       node tema-visual.js    (necesita serve.js corriendo y Chrome instalado)
+
+   Tambien: node --check sobre cada js\*.js
+
+   tema-visual.js es la unica que lee getComputedStyle. Sin ella, los 3 bugs de
+   la seccion 11 (--bs-body-bg-rgb, el blanco de .text-bg-*, fw-bold) se ven
+   como si el CSS estuviera bien. Un tema no se da por bueno leyendo el CSS.
+
+   OJO con humo.js: resuelve los 31 id de index.html desde el HTML. Si se
+   renombra o borra un id, la prueba avisa. Cambiar clases es libre; tocar
+   ids no lo es.
+
+
+
+================================================================================
+ FIN DE LA DOCUMENTACION
+================================================================================

@@ -296,7 +296,7 @@ class App {
     };
 
     const toast = document.createElement("div");
-    toast.className = `toast align-items-center border-0 ${colores[tipo] || colores.info}`;
+    toast.className = `toast align-items-center ${colores[tipo] || colores.info}`;
     toast.setAttribute("role", "alert");
 
     const cuerpo = document.createElement("div");

@@ -92,13 +92,13 @@ class Videos {
         const poster = urlSegura(video.poster);
         const img = poster
           ? `<img src="${escaparHtml(poster)}" class="card-img-top object-fit-cover" alt="${escaparHtml(video.titulo)}" loading="lazy">`
-          : `<div class="card-img-top d-flex align-items-center justify-content-center bg-secondary-subtle text-secondary" style="height:180px">
+          : `<div class="card-img-top d-flex align-items-center justify-content-center bg-secondary-subtle text-secondary">
                <span class="fs-1">&#127916;</span>
              </div>`;
 
         return `
         <div class="col-sm-6 col-lg-4 mb-4">
-          <div class="card h-100 shadow-sm video-card" role="button" tabindex="0"
+          <div class="card h-100 video-card" role="button" tabindex="0"
                data-id="${escaparHtml(video.id)}"
                aria-label="Reproducir ${escaparHtml(video.titulo)}">
             ${img}
@@ -111,8 +111,8 @@ class Videos {
                 ${escaparHtml(video.descripcion)}
               </p>
               <div class="mt-auto d-flex justify-content-between align-items-center pt-2">
-                <small class="text-muted">&#9201; ${escaparHtml(video.duracion)}</small>
-                <small class="text-danger">&#10084; ${escaparHtml(video.likes ?? 0)}</small>
+                <small class="text-muted fw-semibold">&#9201; ${escaparHtml(video.duracion)}</small>
+                <small class="text-danger fw-semibold">&#10084; ${escaparHtml(video.likes ?? 0)}</small>
               </div>
             </div>
           </div>
